@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no"/>
+<title>長者圖案挑戰｜教學模式</title>
+
+<style>
+:root{
+  --bg:#fff8ef;
+  --panel:#fffaf0;
+  --accent:#ffb877;
+  --accent-strong:#ff8c3a;
+}
+html,body{margin:0;height:100%;}
+body{
+  background:var(--bg);
+  font-family:"Noto Sans TC",Arial;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:12px;
+  user-select:none;
+}
+
+h1{font-size:30px;color:var(--accent-strong);margin:8px 0;}
+.lead{font-size:20px;margin-bottom:10px;}
+
+.area{
+  display:flex;
+  gap:18px;
+  flex-wrap:wrap;
+  justify-content:center;
+}
+
+.panel{
+  background:var(--panel);
+  border-radius:12px;
+  padding:12px;
+}
+
+.targetGrid,.boardGrid{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:8px;
+}
+
+.targetCell{
+  width:40px;height:40px;
+  border-radius:8px;
+  background:#fff6e6;
+  border:2px dashed rgba(255,160,90,0.3);
+}
+.targetCell.on{background:var(--accent);border-style:solid;}
+
+.boardCell{
+  width:64px;height:64px;
+  border-radius:10px;
+  background:#fffaf0;
+  border:2px solid rgba(255,140,58,0.5);
+}
+.boardCell.filled{background:var(--accent);}
+.boardCell.guide{
+  animation:pulse 1.2s infinite;
+}
+@keyframes pulse{
+  from{background:rgba(255,183,119,0.3);}
+  to{background:rgba(255,183,119,0.85);}
+}
+
+.single{
+  width:48px;height:48px;
+  border-radius:8px;
+  background:var(--accent);
+  color:#fff;
+  font-size:22px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.status{
+  font-size:20px;
+  margin-top:10px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🧩 圖案教學挑戰</h1>
+<div class="lead">跟著亮起的格子，一步一步完成</div>
+
+<div class="area">
+  <div class="panel">
+    <div>目標圖案</div>
+    <div id="targetGrid" class="targetGrid"></div>
+  </div>
+
+  <div class="panel">
+    <div>你的棋盤</div>
+    <div id="boardGrid" class="boardGrid"></div>
+  </div>
+
+  <div class="panel">
+    <div>單格</div>
+    <div class="single">＋</div>
+  </div>
+</div>
+
+<div id="status" class="status">請點亮起的格子</div>
+
+<script>
+const SIZE=5;
+let target=[],board=[];
+let guideSteps=[],stepIndex=0;
+
+const targetGrid=document.getElementById('targetGrid');
+const boardGrid=document.getElementById('boardGrid');
+const statusEl=document.getElementById('status');
+
+function speak(t){
+  const u=new SpeechSynthesisUtterance(t);
+  u.lang='zh-TW';
+  speechSynthesis.cancel();
+  speechSynthesis.speak(u);
+}
+
+/* 產生連通圖案 */
+function generateTarget(){
+  target=Array.from({length:SIZE},()=>Array(SIZE).fill(0));
+  let need=8, r=2,c=2;
+  target[r][c]=1;
+  let n=1;
+  while(n<need){
+    const d=[[1,0],[-1,0],[0,1],[0,-1]][Math.floor(Math.random()*4)];
+    r=Math.max(0,Math.min(4,r+d[0]));
+    c=Math.max(0,Math.min(4,c+d[1]));
+    if(!target[r][c]){target[r][c]=1;n++;}
+  }
+}
+
+/* 建立格子 */
+function build(){
+  targetGrid.innerHTML='';
+  boardGrid.innerHTML='';
+  board=Array.from({length:SIZE},()=>Array(SIZE).fill(0));
+  guideSteps=[];
+  stepIndex=0;
+
+  for(let r=0;r<SIZE;r++){
+    for(let c=0;c<SIZE;c++){
+      const t=document.createElement('div');
+      t.className='targetCell'+(target[r][c]?' on':'');
+      targetGrid.appendChild(t);
+
+      const b=document.createElement('div');
+      b.className='boardCell';
+      b.dataset.r=r;b.dataset.c=c;
+      b.onclick=place;
+      boardGrid.appendChild(b);
+
+      if(target[r][c]) guideSteps.push([r,c]);
+    }
+  }
+  highlightNext();
+}
+
+/* 高亮下一步 */
+function highlightNext(){
+  document.querySelectorAll('.boardCell').forEach(c=>c.classList.remove('guide'));
+  if(stepIndex>=guideSteps.length) return;
+  const [r,c]=guideSteps[stepIndex];
+  boardGrid.children[r*SIZE+c].classList.add('guide');
+  speak('請點這一格');
+}
+
+/* 放置 */
+function place(e){
+  const r=+e.target.dataset.r;
+  const c=+e.target.dataset.c;
+  const [gr,gc]=guideSteps[stepIndex];
+
+  if(r!==gr||c!==gc){
+    speak('請點亮起的格子');
+    return;
+  }
+
+  e.target.classList.remove('guide');
+  e.target.classList.add('filled');
+  board[r][c]=1;
+  stepIndex++;
+
+  if(stepIndex>=guideSteps.length){
+    statusEl.innerText='完成了！';
+    speak('太棒了，完成圖案');
+    setTimeout(start,2000);
+  }else{
+    highlightNext();
+  }
+}
+
+/* 開始 */
+function start(){
+  statusEl.innerText='請點亮起的格子';
+  generateTarget();
+  build();
+  speak('新的教學開始');
+}
+
+start();
+</script>
+
+</body>
+</html>
