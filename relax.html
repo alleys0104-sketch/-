@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no"/>
-<title>長者圖案挑戰｜教學模式</title>
+<title>長者圖案挑戰（最終版）</title>
 
 <style>
 :root{
@@ -11,206 +11,372 @@
   --panel:#fffaf0;
   --accent:#ffb877;
   --accent-strong:#ff8c3a;
+  --text:#333;
 }
-html,body{margin:0;height:100%;}
+html,body{margin:0;padding:0;height:100%;}
 body{
   background:var(--bg);
-  font-family:"Noto Sans TC",Arial;
+  font-family:"Noto Sans TC", Arial;
+  color:var(--text);
   display:flex;
   flex-direction:column;
   align-items:center;
-  padding:12px;
+  padding:10px;
+  -webkit-user-select:none;
   user-select:none;
+  touch-action:manipulation;
 }
 
-h1{font-size:30px;color:var(--accent-strong);margin:8px 0;}
-.lead{font-size:20px;margin-bottom:10px;}
+/* 大字 */
+h1{ font-size:30px; color:var(--accent-strong); margin:8px 0; }
+.lead{ font-size:22px; }
 
-.area{
+/* 按鈕 */
+.btn{
+  background:var(--accent-strong);
+  color:#fff;
+  border:none;
+  padding:12px 20px;
+  border-radius:12px;
+  font-size:24px;
+  margin:4px;
+}
+.btn:active{ transform:translateY(2px); }
+
+.container{ width:100%; max-width:900px; }
+
+/* 區塊排版 */
+.sizeSelect{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; }
+
+.areaRow{
+  margin-top:10px;
   display:flex;
-  gap:18px;
   flex-wrap:wrap;
+  gap:20px;
   justify-content:center;
 }
 
 .panel{
   background:var(--panel);
-  border-radius:12px;
   padding:12px;
+  border-radius:12px;
+  box-shadow:0 3px 0 rgba(0,0,0,0.1);
 }
 
-.targetGrid,.boardGrid{
+/* 目標 */
+.targetGrid{
   display:grid;
-  grid-template-columns:repeat(5,1fr);
-  gap:8px;
+  gap:6px;
 }
-
 .targetCell{
-  width:40px;height:40px;
-  border-radius:8px;
+  width:40px; height:40px;
   background:#fff6e6;
-  border:2px dashed rgba(255,160,90,0.3);
+  border:2px solid var(--accent-strong);
+  border-radius:6px;
+  opacity:0;
+  animation: fadeIn 0.4s forwards;
 }
-.targetCell.on{background:var(--accent);border-style:solid;}
+.targetCell.on{
+  background:var(--accent);
+  border-color:var(--accent-strong);
+}
 
+@keyframes fadeIn{
+  from{ opacity:0; transform:scale(0.6); }
+  to{ opacity:1; transform:scale(1); }
+}
+
+/* 棋盤 */
+.boardGrid{
+  display:grid;
+  gap:6px;
+}
 .boardCell{
-  width:64px;height:64px;
-  border-radius:10px;
-  background:#fffaf0;
-  border:2px solid rgba(255,140,58,0.5);
+  width:48px; height:48px;
+  background:#fff;
+  border:3px solid var(--accent-strong);
+  border-radius:6px;
+  box-sizing:border-box;
+  transition:0.1s;
 }
-.boardCell.filled{background:var(--accent);}
-.boardCell.guide{
-  animation:pulse 1.2s infinite;
-}
-@keyframes pulse{
-  from{background:rgba(255,183,119,0.3);}
-  to{background:rgba(255,183,119,0.85);}
+.boardCell.filled{
+  background:var(--accent);
+  transform:scale(1.07);
+  box-shadow:0 0 10px rgba(255,140,58,0.6);
 }
 
+/* 半透明引導模式 */
+.boardCell.guide{
+  background:rgba(255,140,58,0.3);
+}
+
+/* 補給單格 */
 .single{
   width:48px;height:48px;
-  border-radius:8px;
   background:var(--accent);
-  color:#fff;
-  font-size:22px;
+  border:3px solid var(--accent-strong);
+  border-radius:8px;
   display:flex;
   align-items:center;
   justify-content:center;
+  font-size:24px;
+  color:#fff;
+  font-weight:bold;
+}
+.single.picked{
+  outline:5px solid rgba(255,140,58,0.4);
+  transform:scale(1.1);
 }
 
-.status{
-  font-size:20px;
-  margin-top:10px;
-}
+.status{ font-size:20px; margin-top:10px; }
+.switchWrap{ font-size:18px; margin-top:6px; }
 </style>
 </head>
 
+
 <body>
+<div class="container">
 
-<h1>🧩 圖案教學挑戰</h1>
-<div class="lead">跟著亮起的格子，一步一步完成</div>
+<h1>🧩 圖案挑戰（最終版）</h1>
+<div class="lead">選棋盤大小 → 填出一模一樣的圖案。</div>
 
-<div class="area">
+<!-- 尺寸選擇 -->
+<div class="sizeSelect">
+  <button class="btn" id="size5">5×5</button>
+  <button class="btn" id="size8">8×8</button>
+  <button class="btn" id="size10">10×10</button>
+</div>
+
+<!-- 語音 / 引導 -->
+<div class="switchWrap">
+  <label><input type="checkbox" id="ttsToggle" checked> 語音引導</label>
+  &nbsp;&nbsp;
+  <label><input type="checkbox" id="guideToggle"> 半透明引導模式</label>
+</div>
+
+<div class="areaRow">
+  <!-- 目標 -->
   <div class="panel">
-    <div>目標圖案</div>
+    <div style="font-size:22px;margin-bottom:6px;">目標圖案</div>
     <div id="targetGrid" class="targetGrid"></div>
   </div>
 
+  <!-- 棋盤 -->
   <div class="panel">
-    <div>你的棋盤</div>
+    <div style="font-size:22px;margin-bottom:6px;">你的棋盤</div>
     <div id="boardGrid" class="boardGrid"></div>
+    <div style="font-size:16px;margin-top:6px;">點選下方方塊 → 點棋盤放置</div>
   </div>
 
+  <!-- 補給 -->
   <div class="panel">
-    <div>單格</div>
-    <div class="single">＋</div>
+    <div style="font-size:20px;">補給（單格）</div>
+    <div id="supply" class="single">＋</div>
   </div>
 </div>
 
-<div id="status" class="status">請點亮起的格子</div>
+<!-- 操作 -->
+<div style="text-align:center;margin-top:10px;">
+  <button class="btn" id="btnReset">重設</button>
+  <button class="btn" id="btnNext">下一題</button>
+</div>
+
+<div class="status" id="status">準備開始。</div>
+
+</div>
 
 <script>
-const SIZE=5;
-let target=[],board=[];
-let guideSteps=[],stepIndex=0;
+/*=====================*
+ *  全域變數
+ *=====================*/
+let gridSize=5;
+let target=[], board=[];
+let supplyPicked=false;
 
-const targetGrid=document.getElementById('targetGrid');
-const boardGrid=document.getElementById('boardGrid');
-const statusEl=document.getElementById('status');
+const targetGrid=document.getElementById("targetGrid");
+const boardGrid=document.getElementById("boardGrid");
+const supply=document.getElementById("supply");
+const statusBox=document.getElementById("status");
 
+const guideToggle=document.getElementById("guideToggle");
+const ttsToggle=document.getElementById("ttsToggle");
+
+/*=====================*
+ *  語音
+ *=====================*/
 function speak(t){
+  if(!ttsToggle.checked) return; // 若語音關閉 → 不說話
   const u=new SpeechSynthesisUtterance(t);
-  u.lang='zh-TW';
+  u.lang="zh-TW";
   speechSynthesis.cancel();
   speechSynthesis.speak(u);
 }
 
-/* 產生連通圖案 */
+/*=====================*
+ *  生成連續圖案
+ *=====================*/
 function generateTarget(){
-  target=Array.from({length:SIZE},()=>Array(SIZE).fill(0));
-  let need=8, r=2,c=2;
+  const N=gridSize;
+  target=Array.from({length:N},()=>Array(N).fill(0));
+
+  const total=N*N;
+  const fillCount=Math.floor(total*0.28);
+
+  let r=Math.floor(N/2), c=Math.floor(N/2);
   target[r][c]=1;
-  let n=1;
-  while(n<need){
-    const d=[[1,0],[-1,0],[0,1],[0,-1]][Math.floor(Math.random()*4)];
-    r=Math.max(0,Math.min(4,r+d[0]));
-    c=Math.max(0,Math.min(4,c+d[1]));
-    if(!target[r][c]){target[r][c]=1;n++;}
+
+  let used=[[r,c]];
+
+  while(used.length<fillCount){
+    const [cr,cc]=used[Math.floor(Math.random()*used.length)];
+    const dirs=[[1,0],[-1,0],[0,1],[0,-1]];
+    const d=dirs[Math.floor(Math.random()*4)];
+    const nr=cr+d[0], nc=cc+d[1];
+    if(nr<0||nr>=N||nc<0||nc>=N) continue;
+    if(target[nr][nc]===1) continue;
+    target[nr][nc]=1;
+    used.push([nr,nc]);
   }
 }
 
-/* 建立格子 */
-function build(){
-  targetGrid.innerHTML='';
-  boardGrid.innerHTML='';
-  board=Array.from({length:SIZE},()=>Array(SIZE).fill(0));
-  guideSteps=[];
-  stepIndex=0;
-
-  for(let r=0;r<SIZE;r++){
-    for(let c=0;c<SIZE;c++){
-      const t=document.createElement('div');
-      t.className='targetCell'+(target[r][c]?' on':'');
-      targetGrid.appendChild(t);
-
-      const b=document.createElement('div');
-      b.className='boardCell';
-      b.dataset.r=r;b.dataset.c=c;
-      b.onclick=place;
-      boardGrid.appendChild(b);
-
-      if(target[r][c]) guideSteps.push([r,c]);
+/*=====================*
+ *  建立 DOM
+ *=====================*/
+function render(){
+  // target
+  targetGrid.style.gridTemplateColumns=`repeat(${gridSize},40px)`;
+  targetGrid.innerHTML="";
+  for(let r=0;r<gridSize;r++){
+    for(let c=0;c<gridSize;c++){
+      const d=document.createElement("div");
+      d.className="targetCell"+(target[r][c]?" on":"");
+      targetGrid.appendChild(d);
     }
   }
-  highlightNext();
+
+  // board
+  board=Array.from({length:gridSize},()=>Array(gridSize).fill(0));
+  boardGrid.style.gridTemplateColumns=`repeat(${gridSize},48px)`;
+  boardGrid.innerHTML="";
+  for(let r=0;r<gridSize;r++){
+    for(let c=0;c<gridSize;c++){
+      const d=document.createElement("div");
+      d.className="boardCell";
+      d.dataset.r=r;
+      d.dataset.c=c;
+      d.addEventListener("click",place);
+      boardGrid.appendChild(d);
+    }
+  }
+
+  if(guideToggle.checked) applyGuide();
 }
 
-/* 高亮下一步 */
-function highlightNext(){
-  document.querySelectorAll('.boardCell').forEach(c=>c.classList.remove('guide'));
-  if(stepIndex>=guideSteps.length) return;
-  const [r,c]=guideSteps[stepIndex];
-  boardGrid.children[r*SIZE+c].classList.add('guide');
-  speak('請點這一格');
+/*=====================*
+ *  半透明引導
+ *=====================*/
+function applyGuide(){
+  for(let r=0;r<gridSize;r++){
+    for(let c=0;c<gridSize;c++){
+      const cell=boardGrid.children[r*gridSize+c];
+      if(target[r][c]===1 && board[r][c]===0){
+        cell.classList.add("guide");
+      }
+    }
+  }
 }
+function clearGuide(){
+  [...boardGrid.children].forEach(c=>c.classList.remove("guide"));
+}
+guideToggle.addEventListener("change",()=>{
+  clearGuide();
+  if(guideToggle.checked) applyGuide();
+});
 
-/* 放置 */
+/*=====================*
+ *  補給選取
+ *=====================*/
+supply.addEventListener("click",()=>{
+  supplyPicked=!supplyPicked;
+  supply.classList.toggle("picked",supplyPicked);
+  if(supplyPicked) speak("選好了，可以放置方塊");
+});
+
+/*=====================*
+ *  放置方塊
+ *=====================*/
 function place(e){
-  const r=+e.target.dataset.r;
-  const c=+e.target.dataset.c;
-  const [gr,gc]=guideSteps[stepIndex];
-
-  if(r!==gr||c!==gc){
-    speak('請點亮起的格子');
+  if(!supplyPicked){
+    speak("請先選下方的單格");
     return;
   }
 
-  e.target.classList.remove('guide');
-  e.target.classList.add('filled');
-  board[r][c]=1;
-  stepIndex++;
+  const r=parseInt(e.currentTarget.dataset.r);
+  const c=parseInt(e.currentTarget.dataset.c);
 
-  if(stepIndex>=guideSteps.length){
-    statusEl.innerText='完成了！';
-    speak('太棒了，完成圖案');
-    setTimeout(start,2000);
-  }else{
-    highlightNext();
+  if(board[r][c]===1){
+    speak("這格已經放過了");
+    return;
   }
+
+  board[r][c]=1;
+  const cell=e.currentTarget;
+  cell.classList.add("filled");
+
+  if(guideToggle.checked) cell.classList.remove("guide");
+
+  checkWin();
 }
 
-/* 開始 */
-function start(){
-  statusEl.innerText='請點亮起的格子';
+/*=====================*
+ *  判斷是否完成
+ *=====================*/
+function checkWin(){
+  for(let r=0;r<gridSize;r++){
+    for(let c=0;c<gridSize;c++){
+      if(target[r][c]!==board[r][c]) return;
+    }
+  }
+  speak("太棒了！你完成了！");
+  statusBox.innerText="🎉 完成圖案！按下一題繼續";
+}
+
+/*=====================*
+ *  重設 / 下一題
+ *=====================*/
+document.getElementById("btnReset").addEventListener("click",()=>{
+  clearGuide();
+  board.forEach(r=>r.fill(0));
+  [...boardGrid.children].forEach(c=>c.classList.remove("filled","guide"));
+  supplyPicked=false;
+  supply.classList.remove("picked");
+  if(guideToggle.checked) applyGuide();
+  speak("已重設");
+  statusBox.innerText="已重設。";
+});
+
+document.getElementById("btnNext").addEventListener("click",()=>{
   generateTarget();
-  build();
-  speak('新的教學開始');
-}
+  render();
+  supplyPicked=false;
+  supply.classList.remove("picked");
+  speak("新的題目開始");
+  statusBox.innerText="新的題目開始！";
+});
 
-start();
+/*=====================*
+ *  尺寸切換
+ *=====================*/
+document.getElementById("size5").onclick=()=>{gridSize=5;generateTarget();render();};
+document.getElementById("size8").onclick=()=>{gridSize=8;generateTarget();render();};
+document.getElementById("size10").onclick=()=>{gridSize=10;generateTarget();render();};
+
+/*=====================*
+ *  初始化
+ *=====================*/
+generateTarget();
+render();
 </script>
 
 </body>
 </html>
-
