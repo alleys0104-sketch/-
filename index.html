@@ -108,7 +108,6 @@ button:active { background: #ffc999; }
 </div>
 <div class="controls">
   <button id="modeBtn">模式：5x5</button>
-  <button id="relaxBtn">放鬆模式：關</button>
   <button id="hintBtn">💡 給我提示</button>
   <button id="restartBtn">重新開始</button>
 </div>
@@ -128,7 +127,6 @@ let board = [];
 let score = 0;
 let best = parseInt(localStorage.getItem('best_block')) || 0;
 let startTime = Date.now();
-let relaxMode = false;
 let idleTimer;
 let currentShapes = [];
 bestEl.textContent = best;
@@ -346,10 +344,6 @@ document.getElementById('modeBtn').onclick=()=>{
   boardSize = boardSize===5 ? 8 : boardSize===8 ? 10 : 5;
   document.getElementById('modeBtn').textContent=`模式：${boardSize}x${boardSize}`;
   restart();
-};
-document.getElementById('relaxBtn').onclick=()=>{
-  relaxMode = !relaxMode;
-  document.getElementById('relaxBtn').textContent = `放鬆模式：${relaxMode?"開":"關"}`;
 };
 document.getElementById('restartBtn').onclick=()=>restart();
 document.getElementById('hintBtn').onclick=()=>showHint();
